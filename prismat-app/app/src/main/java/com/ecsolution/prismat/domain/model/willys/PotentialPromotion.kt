@@ -1,0 +1,32 @@
+package com.ecsolution.prismat.domain.model.willys
+
+data class PotentialPromotion(
+    val applied: Boolean,
+    val campaignType: String,
+    val cartLabel: Any,
+    val cartLabelFormatted: String,
+    val code: String,
+    val comparePrice: String,
+    val conditionLabel: String,
+    val conditionLabelFormatted: String,
+    val lowestHistoricalPrice: Any,
+    val mainProductCode: String,
+    val price: Price,
+    val priority: Int,
+    val productCodes: List<String>,
+    val promotionPercentage: Any,
+    val promotionRedeemLimit: Any,
+    val promotionTheme: PromotionTheme,
+    val promotionType: String,
+    val qualifyingCount: Int,
+    val realMixAndMatch: Boolean,
+    val redeemLimitLabel: String,
+    val rewardLabel: String,
+    val splashTitleText: String,
+    val textLabel: String,
+    val textLabelGenerated: String,
+    val textLabelManual: Any,
+    val threshold: Any,
+    val timesUsed: Any,
+    val validUntil: Any
+)
