@@ -8,7 +8,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 class ApiService(retrofit: Retrofit) {
     private val apiService = retrofit.create(ApiService::class.java)
 
-    // https://rickard80.github.io/prismat/discounts.json
     suspend fun <T> makeApiRequest(apiCall: suspend () -> T): T {
         return withContext(Dispatchers.IO) {
             apiCall.invoke()
@@ -21,4 +20,3 @@ class ApiService(retrofit: Retrofit) {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 }
-
