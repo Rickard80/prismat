@@ -1,22 +1,18 @@
 package com.ecsolution.prismat.data.remote
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import com.ecsolution.prismat.data.remote.endpoints.Endpoints
+import com.ecsolution.prismat.data.remote.provider.APiServiceProvider
+import com.ecsolution.prismat.domain.model.ProductWillys
+import com.ecsolution.prismat.domain.model.stores.StoreItem
+import com.ecsolution.prismat.domain.model.stores.Stores
 
-class ApiService(retrofit: Retrofit) {
-    private val apiService = retrofit.create(ApiService::class.java)
+class ApiService: Endpoints {
+    private val baseUrl = "https://rickard80.github.io/prismat/"
+    private val service: Endpoints = APiServiceProvider(baseUrl).invoke()
 
-    suspend fun <T> makeApiRequest(apiCall: suspend () -> T): T {
-        return withContext(Dispatchers.IO) {
-            apiCall.invoke()
-        }
-    }
+    override suspend fun getStores() = service.getStores()
 
-    fun WillysRetrofitClient() =
-        Retrofit.Builder()
-            .baseUrl("https://api.example.com/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+    override suspend fun getWillysProducts(url: String): ProductWillys = service.getWillysProducts(url)
+
+    fun extractDiscountURLFrom(stores: Stores) = stores.storeItems.map { StoreItem(it.name, it.url) }
 }

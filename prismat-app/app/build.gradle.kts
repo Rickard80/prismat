@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.androidx.material)  // Material Design
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.activity.compose) // Integration
+    implementation(libs.androidx.lifecycle.runtime.compose) // Viewmodel live update
+    implementation(libs.androidx.runtime.livedata)
+
 
     // Retrofit, Gson
     implementation(libs.retrofit)

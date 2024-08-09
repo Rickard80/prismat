@@ -1,6 +1,9 @@
 package com.ecsolution.prismat.domain.model.stores
 
+import com.google.gson.annotations.SerializedName
+
 data class Stores(
     val id: String,
-    val store_items: List<StoreItem>
+    @SerializedName("store_items")
+    val storeItems: List<StoreItem>
 )

@@ -23,7 +23,7 @@ fun DiscountItem(item: Discount) {
             Text(
                 text = item.title,
             )
-            Text(text = item.store)
+            Text(text = item.store.name)
         }
 
         Spacer(modifier = Modifier.weight(1f))
