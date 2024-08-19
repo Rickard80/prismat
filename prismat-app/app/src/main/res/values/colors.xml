@@ -2,7 +2,10 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="primary">#31B57F</color>
-    <color name="secondary">#F0EC32</color>
-    <color name="tetriary">#E78F00</color>
+    <color name="teal">#99D2B7</color>
+    <color name="teal_background">#D6EAD4</color>
+    <color name="yellow">#F2E27F</color>
+    <color name="yellow_background">#F2E27F</color>
+    <color name="orange">#F6BC6A</color>
+    <color name="red">#F3A26F</color>
 </resources>

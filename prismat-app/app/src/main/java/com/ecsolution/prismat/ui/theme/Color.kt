@@ -13,7 +13,7 @@ val errorDark = Color(0xFFE0605A)
 // Light
 val ECPurpleLight = Color(0xFF263547)
 val secondary = Color(0xFF8F8F8F)
-val background = Color(0xFFE4E4E4)
+val background = Color(0xFF6795B9)
 val surface = Color(0xFFFFFFFF)
 val onSurface = Color(0xFF000000)
 

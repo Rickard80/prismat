@@ -8,11 +8,18 @@ import androidx.lifecycle.ViewModel
 import com.ecsolution.prismat.data.remote.ApiService
 import com.ecsolution.prismat.domain.SupportedStores
 import com.ecsolution.prismat.domain.model.ApiState
-import com.ecsolution.prismat.domain.model.Constants
 import com.ecsolution.prismat.domain.model.Discount
+import com.ecsolution.prismat.domain.model.ProductWillys
 import com.ecsolution.prismat.domain.model.stores.StoreItem
+import com.ecsolution.prismat.extensions.round
+import com.ecsolution.prismat.presentation.discounts.components.DiscountItem
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 class DiscountViewModel: ViewModel() {
     private var _items = MutableStateFlow(mutableListOf<Discount>())
@@ -20,23 +27,25 @@ class DiscountViewModel: ViewModel() {
 
     val items: StateFlow<MutableList<Discount>> = _items
     var apiState by mutableStateOf(ApiState.Loading)
-    private val getDicountCount get() = _items.value.count()
-    private val hasDiscounts get() = getDicountCount > 0
+    private val getDiscountCount get() = _items.value.count()
+    private val hasDiscounts get() = getDiscountCount > 0
 
     suspend fun loadDiscounts() {
         val apiService = ApiService()
         val stores = apiService.getStores()
         val storeItems = apiService.extractDiscountURLFrom(stores)
 
-        storeItems.forEach {
-            _items.value.addAll(fetchDiscounts(it))
+        val discounts = storeItems.map { storeItem ->
+            fetchDiscounts(storeItem)
         }
 
-        if (hasDiscounts) {
-            apiState = ApiState.Success
-            Log.d(Constants.LOGCAT_FILTER, "Found ${items.value.count()} discounts")
+        discounts.forEach {
+            _items.value.addAll(it)
         }
 
+        _items.value.sortWith(compareBy { it.title} )
+
+        apiState = if (hasDiscounts) ApiState.Success else ApiState.Error
     }
 
     private suspend fun fetchDiscounts(storeItem: StoreItem): List<Discount> {
@@ -46,19 +55,42 @@ class DiscountViewModel: ViewModel() {
     }
 
     private suspend fun fetchWillysDiscounts(url: String): List<Discount> {
-        val product = apiService.getWillysProducts(url)
+        val product: ProductWillys
+
+        try {
+            product = apiService.getWillysProducts(url)
+        } catch (e: Exception) {
+            Log.d("fetchWillysDiscounts", e.message.toString())
+            apiState = ApiState.Error
+            return emptyList()
+        }
+
         val list = mutableListOf<Discount>()
 
-        product.paginationData.items.forEach { willysItem ->
-            list.add(Discount(
-                0, willysItem.name, willysItem.productLine2, willysItem.priceValue, 0, SupportedStores.WILLYS
-            ))
+        product.paginationData.items.forEach {
+            if (it.savingsAmount != 0.0) {
+                val savedPrice = it.priceValue - it.savingsAmount
+                val percentage = 100 - (savedPrice / it.priceValue * 100).roundToInt()
+
+                val promo = it.potentialPromotions.first()
+                val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
+                val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}"
+                val unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
+
+                list.add(Discount(
+                    id = 0,
+                    title = it.name,
+                    subtitle = it.productLine2,
+                    price = if (hasSpecialOffer) { specialOffer } else savedPrice.roundToInt().toString() + it.priceUnit,
+                    discount = percentage,
+                    comparePrice = "${promo.comparePrice}${unit}",
+                    store = SupportedStores.WILLYS
+                ))
+            }
         }
 
         return list
     }
-
-
 
     fun addDiscount(discount: Discount) {
         _items.value.add(discount)
@@ -82,5 +114,32 @@ class DiscountViewModel: ViewModel() {
 
     fun updateDiscount(index: Int, discount: Discount) {
         _items.value[index] = discount
+    }
+
+    fun overwriteDiscounts(list: List<Discount>) {
+        _items.value = list.toMutableList()
+    }
+
+    object Testing {
+        private fun randomNumber(min: Int = 0, max: Int = 100) = (Math.random() * (max - min) + min).roundToInt()
+        private fun getFruits() = listOf("Banana", "Apple", "Orange", "Mango")
+
+        fun fakeItem() = Discount(
+            id = 0,
+            title = getFruits().random(),
+            subtitle = "Frukt",
+            price = randomNumber().toString(),
+            discount = randomNumber(),
+            comparePrice = randomNumber().toString(),
+            store = SupportedStores.WILLYS
+        )
+
+        fun fakeList(number: Int = 10) : List<Discount> {
+            val list = mutableListOf<Discount>()
+            for (i in 0..number) {
+                list.add(fakeItem())
+            }
+            return list
+        }
     }
 }
