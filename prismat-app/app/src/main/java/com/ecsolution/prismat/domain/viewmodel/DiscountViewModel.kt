@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import com.ecsolution.prismat.data.remote.ApiService
 import com.ecsolution.prismat.domain.SupportedStores
 import com.ecsolution.prismat.domain.model.ApiState
+import com.ecsolution.prismat.domain.model.Constants
 import com.ecsolution.prismat.domain.model.Discount
 import com.ecsolution.prismat.domain.model.ProductWillys
 import com.ecsolution.prismat.domain.model.stores.StoreItem
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.log
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -35,17 +37,21 @@ class DiscountViewModel: ViewModel() {
         val stores = apiService.getStores()
         val storeItems = apiService.extractDiscountURLFrom(stores)
 
-        val discounts = storeItems.map { storeItem ->
+        val jobs = storeItems.map { storeItem ->
             fetchDiscounts(storeItem)
         }
 
-        discounts.forEach {
-            _items.value.addAll(it)
+        jobs.forEach { discounts ->
+            _items.value.addAll(discounts)
         }
 
         _items.value.sortWith(compareBy { it.title} )
 
-        apiState = if (hasDiscounts) ApiState.Success else ApiState.Error
+        if (!hasDiscounts) {
+            apiState = ApiState.Error
+        } else {
+            apiState = ApiState.Success
+        }
     }
 
     private suspend fun fetchDiscounts(storeItem: StoreItem): List<Discount> {
@@ -72,10 +78,16 @@ class DiscountViewModel: ViewModel() {
                 val savedPrice = it.priceValue - it.savingsAmount
                 val percentage = 100 - (savedPrice / it.priceValue * 100).roundToInt()
 
+                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts: $it")
                 val promo = it.potentialPromotions.first()
                 val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
                 val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}"
-                val unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
+                val comparePrice = promo.comparePrice.ifEmpty { it.comparePrice }
+                var unit = it.comparePriceUnit
+
+                if (promo.comparePrice.isNotEmpty()) {
+                    unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
+                }
 
                 list.add(Discount(
                     id = 0,
@@ -83,7 +95,7 @@ class DiscountViewModel: ViewModel() {
                     subtitle = it.productLine2,
                     price = if (hasSpecialOffer) { specialOffer } else savedPrice.roundToInt().toString() + it.priceUnit,
                     discount = percentage,
-                    comparePrice = "${promo.comparePrice}${unit}",
+                    comparePrice = "${comparePrice}${unit}",
                     store = SupportedStores.WILLYS
                 ))
             }

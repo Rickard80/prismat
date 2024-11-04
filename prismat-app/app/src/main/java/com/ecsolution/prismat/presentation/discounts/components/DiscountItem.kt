@@ -1,6 +1,7 @@
 package com.ecsolution.prismat.presentation.discounts.components
 
 import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,9 +35,9 @@ fun DiscountItem(item: Discount) {
         .height(IntrinsicSize.Min)
         .padding(end = 16.dp, top = 8.dp, bottom = 8.dp, start = 4.dp)
     ) {
-        StoreColor(Color.Cyan)
-
-        Column(modifier = Modifier.weight(weight = 0.1f, fill = true).padding(horizontal = 8.dp)) {
+        Column(modifier = Modifier
+            .weight(weight = 0.1f, fill = true)
+            .padding(horizontal = 8.dp)) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -47,7 +52,7 @@ fun DiscountItem(item: Discount) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            Text(text = item.store.name, style = MaterialTheme.typography.bodySmall)
+            Store(item.store.name, Color.Cyan)
         }
 
 
@@ -60,14 +65,16 @@ fun DiscountItem(item: Discount) {
 }
 
 @Composable
-private fun StoreColor(color: Color) {
-    Box(
-        modifier = Modifier
-            .width(4.dp)
-            .background(color)
-            .padding(horizontal = 2.dp)
-            .fillMaxHeight()
-    )
+private fun Store(name: String, color: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .background(color, CircleShape)
+        )
+
+        Text(text = name, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start = 8.dp))
+    }
 }
 
 @Preview("Light", showBackground = true)

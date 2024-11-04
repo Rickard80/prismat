@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.androidx.activity.compose)      // Integration
     debugImplementation(libs.androidx.ui.tooling)       // Preview
 
-
     // Retrofit, Gson
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
