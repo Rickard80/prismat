@@ -78,15 +78,16 @@ class DiscountViewModel: ViewModel() {
                 val savedPrice = it.priceValue - it.savingsAmount
                 val percentage = 100 - (savedPrice / it.priceValue * 100).roundToInt()
 
-                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts: $it")
+                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val promo = it.potentialPromotions.first()
                 val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
                 val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}"
-                val comparePrice = promo.comparePrice.ifEmpty { it.comparePrice }
-                var unit = it.comparePriceUnit
+                var comparePrice = it.comparePrice
+                var unit = "---"
 
-                if (promo.comparePrice.isNotEmpty()) {
+                if (!promo.comparePrice.isNullOrEmpty()) {
                     unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
+                    comparePrice = promo.comparePrice.ifEmpty { it.comparePrice }
                 }
 
                 list.add(Discount(

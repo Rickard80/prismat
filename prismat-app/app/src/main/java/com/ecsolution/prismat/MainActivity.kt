@@ -30,13 +30,11 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
         }
 
         setContent {
-            PrismatTheme(dynamicColor = true) {
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    when (discountViewModel.apiState) {
-                        ApiState.Loading -> LoadingScreen()
-                        ApiState.Success -> DiscountScreen(discountViewModel)
-                        ApiState.Error -> Toast.makeText(this, "Network error", Toast.LENGTH_SHORT).show()
-                    }
+            PrismatTheme(dynamicColor = false) {
+                when (discountViewModel.apiState) {
+                    ApiState.Loading -> LoadingScreen()
+                    ApiState.Success -> DiscountScreen(discountViewModel)
+                    ApiState.Error -> Toast.makeText(this, "Network error", Toast.LENGTH_SHORT).show()
                 }
             }
         }

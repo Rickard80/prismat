@@ -6,7 +6,7 @@ data class Item(
     val averageWeight: Double,
     val bargainProduct: Boolean,
     val code: String,
-    val comparePrice: String,
+    val comparePrice: String?,
     val comparePriceUnit: String,
     val depositPrice: String,
     val displayVolume: String,
