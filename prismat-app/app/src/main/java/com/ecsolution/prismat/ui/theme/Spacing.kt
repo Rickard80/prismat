@@ -1,4 +1,4 @@
-package com.ecsolution.hodor.ui.theme
+package com.ecsolution.prismat.ui.theme
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable

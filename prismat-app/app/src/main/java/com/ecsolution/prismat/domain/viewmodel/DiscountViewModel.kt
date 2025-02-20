@@ -12,16 +12,9 @@ import com.ecsolution.prismat.domain.model.Constants
 import com.ecsolution.prismat.domain.model.Discount
 import com.ecsolution.prismat.domain.model.ProductWillys
 import com.ecsolution.prismat.domain.model.stores.StoreItem
-import com.ecsolution.prismat.extensions.round
-import com.ecsolution.prismat.presentation.discounts.components.DiscountItem
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlin.math.log
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 class DiscountViewModel: ViewModel() {
     private var _items = MutableStateFlow(mutableListOf<Discount>())
