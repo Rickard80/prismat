@@ -27,7 +27,7 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
         }
 
         setContent {
-            PrismatTheme(dynamicColor = false, darkTheme = false) {
+            PrismatTheme(dynamicColor = false, /*darkTheme = false*/) {
                 when (discountViewModel.apiState) {
                     ApiState.Loading -> LoadingScreen()
                     ApiState.Success -> DiscountScreen(discountViewModel)

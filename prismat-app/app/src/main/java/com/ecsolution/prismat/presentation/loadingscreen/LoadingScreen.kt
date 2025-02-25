@@ -20,12 +20,11 @@ fun LoadingScreen() {
     ) {
         CircularProgressIndicator(
             modifier = Modifier.width(64.dp),
-            color = MaterialTheme.colorScheme.secondary,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant
+            color = MaterialTheme.colorScheme.onSurface,
+            trackColor = MaterialTheme.colorScheme.tertiary
         )
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

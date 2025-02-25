@@ -56,6 +56,7 @@ class DiscountViewModel: ViewModel() {
     private suspend fun fetchWillysDiscounts(url: String): List<Discount> {
         val product: ProductWillys
 
+        Log.d(Constants.LOGCAT_FILTER, "URL: $url")
         try {
             product = apiService.getWillysProducts(url)
         } catch (e: Exception) {
@@ -71,10 +72,10 @@ class DiscountViewModel: ViewModel() {
                 val savedPrice = it.priceValue - it.savingsAmount
                 val percentage = 100 - (savedPrice / it.priceValue * 100).roundToInt()
 
-                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
+//                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val promo = it.potentialPromotions.first()
                 val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
-                val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}"
+                val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}".replace("+pant", "")
                 var comparePrice = it.comparePrice
                 var unit = "---"
 
