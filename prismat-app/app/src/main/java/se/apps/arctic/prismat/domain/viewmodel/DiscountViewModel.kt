@@ -75,7 +75,7 @@ class DiscountViewModel: ViewModel() {
 //                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val promo = it.potentialPromotions.first()
                 val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
-                val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}".replace("+pant", "")
+                val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}".replace("+pant", "").trim()
                 var comparePrice = it.comparePrice
                 var unit = "---"
 
