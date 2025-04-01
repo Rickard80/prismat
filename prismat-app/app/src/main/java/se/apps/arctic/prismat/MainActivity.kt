@@ -1,5 +1,9 @@
 package se.apps.arctic.prismat
 
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -15,23 +19,61 @@ import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
 class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val discountViewModel = DiscountViewModel()
 
-        val discountViewModel = DiscountViewModel()
+    private fun setupInternetConnectionMonitor() {
+        val networkRequest = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
 
-Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} started")
+        // Set up callback
+        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        connectivityManager.requestNetwork(networkRequest, networkCallback)
 
+        val network = connectivityManager.activeNetwork
+        val capabilities = connectivityManager.getNetworkCapabilities(network)
+        val hasInternetConnection = capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+
+        if (!hasInternetConnection) {
+            discountViewModel.apiState = ApiState.NO_INTERNET
+        }
+    }
+
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        // Network capabilities have changed for the network
+        override fun onCapabilitiesChanged(
+            network: Network,
+            networkCapabilities: NetworkCapabilities
+        ) {
+            super.onCapabilitiesChanged(network, networkCapabilities)
+            val unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+            Log.d(Constants.LOGCAT_FILTER, "onCapabilitiesChanged: $unmetered", )
+
+            if (unmetered && discountViewModel.getDiscounts().value.isEmpty()) {
+                loadDiscounts()
+            }
+        }
+    }
+
+    private fun loadDiscounts() {
         lifecycleScope.launch {
             discountViewModel.loadDiscounts()
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} started")
+        setupInternetConnectionMonitor()
 
         setContent {
             PrismatTheme(dynamicColor = false, /*darkTheme = false*/) {
                 when (discountViewModel.apiState) {
-                    ApiState.Loading -> LoadingScreen()
-                    ApiState.Success -> DiscountScreen(discountViewModel)
-                    ApiState.Error -> Toast.makeText(this, "Network error", Toast.LENGTH_SHORT).show()
+                    ApiState.LOADING -> LoadingScreen()
+                    ApiState.SUCCESS -> DiscountScreen(discountViewModel)
+                    ApiState.ERROR -> Toast.makeText(this, "Network error", Toast.LENGTH_SHORT).show()
+                    ApiState.NO_INTERNET -> Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
                 }
             }
         }

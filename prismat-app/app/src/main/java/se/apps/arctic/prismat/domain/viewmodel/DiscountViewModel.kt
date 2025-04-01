@@ -19,13 +19,17 @@ import kotlin.math.roundToInt
 class DiscountViewModel: ViewModel() {
     private var _items = MutableStateFlow(mutableListOf<Discount>())
     private val apiService = ApiService()
+    private var gettingStores = false
 
     val items: StateFlow<MutableList<Discount>> = _items
-    var apiState by mutableStateOf(ApiState.Loading)
+    var apiState by mutableStateOf(ApiState.LOADING)
     private val getDiscountCount get() = _items.value.count()
     private val hasDiscounts get() = getDiscountCount > 0
 
     suspend fun loadDiscounts() {
+        if (gettingStores) { return }
+
+        gettingStores = true
         val apiService = ApiService()
         val stores = apiService.getStores()
         val storeItems = apiService.extractDiscountURLFrom(stores)
@@ -41,10 +45,12 @@ class DiscountViewModel: ViewModel() {
         _items.value.sortWith(compareBy { it.title} )
 
         if (!hasDiscounts) {
-            apiState = ApiState.Error
+            apiState = ApiState.ERROR
         } else {
-            apiState = ApiState.Success
+            apiState = ApiState.SUCCESS
         }
+
+        gettingStores = false
     }
 
     private suspend fun fetchDiscounts(storeItem: StoreItem): List<Discount> {
@@ -61,7 +67,7 @@ class DiscountViewModel: ViewModel() {
             product = apiService.getWillysProducts(url)
         } catch (e: Exception) {
             Log.d("fetchWillysDiscounts", e.message.toString())
-            apiState = ApiState.Error
+            apiState = ApiState.ERROR
             return emptyList()
         }
 

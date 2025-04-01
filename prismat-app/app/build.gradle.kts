@@ -66,7 +66,7 @@ dependencies {
     implementation(libs.androidx.ui)                    // UI elements
     implementation(libs.androidx.material)              // Material Design
     implementation(libs.androidx.activity.compose)      // Integration
-    implementation(libs.androidx.ui.tooling)            // Preview - eccluded when minimized
+    implementation(libs.androidx.ui.tooling)            // Preview - excluded when minimized
 
     // Retrofit, Gson
     implementation(libs.retrofit)
