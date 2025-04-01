@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="network_error">Nätverksfel. Var god försök senare.</string>
+    <string name="no_internet">Ingen förbindelse. Kontrollera din internetuppkoppling.</string>
+    <string name="no_discounts">Inga rabatter finns tillgängliga. Var god försök senare.</string>
+</resources>

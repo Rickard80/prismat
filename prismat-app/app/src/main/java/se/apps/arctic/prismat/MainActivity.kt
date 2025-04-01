@@ -40,16 +40,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        // Network capabilities have changed for the network
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
-        ) {
+        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             super.onCapabilitiesChanged(network, networkCapabilities)
             val unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-            Log.d(Constants.LOGCAT_FILTER, "onCapabilitiesChanged: $unmetered", )
 
-            if (unmetered && discountViewModel.getDiscounts().value.isEmpty()) {
+            if (unmetered && !discountViewModel.hasDiscounts) {
                 loadDiscounts()
             }
         }
@@ -72,8 +67,8 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
                 when (discountViewModel.apiState) {
                     ApiState.LOADING -> LoadingScreen()
                     ApiState.SUCCESS -> DiscountScreen(discountViewModel)
-                    ApiState.ERROR -> Toast.makeText(this, "Network error", Toast.LENGTH_SHORT).show()
-                    ApiState.NO_INTERNET -> Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show()
+                    ApiState.ERROR -> Toast.makeText(this, R.string.network_error, Toast.LENGTH_LONG).show()
+                    ApiState.NO_INTERNET -> Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show()
                 }
             }
         }

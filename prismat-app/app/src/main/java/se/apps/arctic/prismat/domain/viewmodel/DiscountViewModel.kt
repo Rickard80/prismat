@@ -14,6 +14,8 @@ import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.model.Discount
 import se.apps.arctic.prismat.domain.model.ProductWillys
 import se.apps.arctic.prismat.domain.model.stores.StoreItem
+import java.io.IOException
+import java.util.UUID
 import kotlin.math.roundToInt
 
 class DiscountViewModel: ViewModel() {
@@ -23,34 +25,36 @@ class DiscountViewModel: ViewModel() {
 
     val items: StateFlow<MutableList<Discount>> = _items
     var apiState by mutableStateOf(ApiState.LOADING)
-    private val getDiscountCount get() = _items.value.count()
-    private val hasDiscounts get() = getDiscountCount > 0
+    val hasDiscounts get() = _items.value.isNotEmpty()
 
     suspend fun loadDiscounts() {
         if (gettingStores) { return }
 
         gettingStores = true
-        val apiService = ApiService()
-        val stores = apiService.getStores()
-        val storeItems = apiService.extractDiscountURLFrom(stores)
 
-        val jobs = storeItems.map { storeItem ->
-            fetchDiscounts(storeItem)
-        }
+        try {
+            val apiService = ApiService()
+            val stores = apiService.getStores()
 
-        jobs.forEach { discounts ->
-            _items.value.addAll(discounts)
-        }
+            val storeItems = apiService.extractDiscountURLFrom(stores)
 
-        _items.value.sortWith(compareBy { it.title} )
+            val jobs = storeItems.map { storeItem ->
+                fetchDiscounts(storeItem)
+            }
 
-        if (!hasDiscounts) {
-            apiState = ApiState.ERROR
-        } else {
+            jobs.forEach { discounts ->
+                _items.value.addAll(discounts)
+            }
+
+            _items.value.sortWith(compareBy { it.title} )
+
             apiState = ApiState.SUCCESS
+            gettingStores = false
+        } catch (e: Exception) {
+            Log.d(Constants.LOGCAT_FILTER, e.message.toString())
+            apiState = ApiState.ERROR
+            gettingStores = false
         }
-
-        gettingStores = false
     }
 
     private suspend fun fetchDiscounts(storeItem: StoreItem): List<Discount> {
@@ -91,7 +95,7 @@ class DiscountViewModel: ViewModel() {
                 }
 
                 list.add(Discount(
-                    id = 0,
+                    id = UUID.randomUUID().hashCode(),
                     title = it.name,
                     subtitle = it.productLine2,
                     price = if (hasSpecialOffer) { specialOffer } else savedPrice.roundToInt().toString() + it.priceUnit,
