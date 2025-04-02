@@ -15,6 +15,8 @@ import se.apps.arctic.prismat.domain.model.ApiState
 import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
 import se.apps.arctic.prismat.presentation.discounts.DiscountScreen
+import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
+import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreenType
 import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
@@ -67,8 +69,8 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
                 when (discountViewModel.apiState) {
                     ApiState.LOADING -> LoadingScreen()
                     ApiState.SUCCESS -> DiscountScreen(discountViewModel)
-                    ApiState.ERROR -> Toast.makeText(this, R.string.network_error, Toast.LENGTH_LONG).show()
-                    ApiState.NO_INTERNET -> Toast.makeText(this, R.string.no_internet, Toast.LENGTH_LONG).show()
+                    ApiState.ERROR -> ErrorScreen(ErrorScreenType.ERROR)
+                    ApiState.NO_INTERNET -> ErrorScreen(ErrorScreenType.NO_INTERNET_CONNECTION)
                 }
             }
         }

@@ -24,7 +24,7 @@ android {
         applicationId = "se.apps.arctic.prismat"
         minSdk = 33
         targetSdk = 34
-        versionCode = majorVersion
+        versionCode = numberOfCommits
         versionName = "$majorVersion.$minorVersion.$patchVersion"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

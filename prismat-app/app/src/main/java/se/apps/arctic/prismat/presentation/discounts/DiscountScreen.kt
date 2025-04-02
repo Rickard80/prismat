@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import se.apps.arctic.prismat.R
 import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
 import se.apps.arctic.prismat.presentation.discounts.components.DiscountItem
+import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
+import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreenType
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 import se.apps.arctic.prismat.ui.theme.Theme
 import se.apps.arctic.prismat.ui.theme.spacing
@@ -33,13 +35,7 @@ fun DiscountScreen(
     val listSpacing = if (isSystemInDarkTheme()) 6.dp else 4.dp
 
     if (discounts.value.isEmpty()) {
-        Column(modifier = Modifier.fillMaxSize().padding(Theme.spacing.double)) {
-            Text(
-                text = stringResource(R.string.no_discounts),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+        ErrorScreen(ErrorScreenType.NO_DISCOUNTS)
     } else {
         LazyColumn(
             contentPadding = PaddingValues(top = listSpacing, bottom = listSpacing),
