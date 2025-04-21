@@ -6,7 +6,6 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -16,7 +15,6 @@ import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
 import se.apps.arctic.prismat.presentation.discounts.DiscountScreen
 import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
-import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreenType
 import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
@@ -38,15 +36,17 @@ class MainActivity : AppCompatActivity() {
 
         if (!hasInternetConnection) {
             discountViewModel.apiState = ApiState.NO_INTERNET
+            discountViewModel.error = getString(ApiState.NO_INTERNET.getText())
         }
     }
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
             super.onCapabilitiesChanged(network, networkCapabilities)
-            val unmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
 
-            if (unmetered && !discountViewModel.hasDiscounts) {
+            val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+
+            if (hasInternet && !discountViewModel.hasDiscounts) {
                 loadDiscounts()
             }
         }
@@ -69,8 +69,8 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
                 when (discountViewModel.apiState) {
                     ApiState.LOADING -> LoadingScreen()
                     ApiState.SUCCESS -> DiscountScreen(discountViewModel)
-                    ApiState.ERROR -> ErrorScreen(ErrorScreenType.ERROR)
-                    ApiState.NO_INTERNET -> ErrorScreen(ErrorScreenType.NO_INTERNET_CONNECTION)
+                    ApiState.ERROR -> ErrorScreen(ApiState.ERROR, discountViewModel.error)
+                    ApiState.NO_INTERNET, ApiState.NO_DISCOUNTS -> ErrorScreen(ApiState.NO_INTERNET, discountViewModel.error)
                 }
             }
         }

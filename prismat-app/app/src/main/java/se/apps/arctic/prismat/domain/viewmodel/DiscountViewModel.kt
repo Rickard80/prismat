@@ -14,7 +14,6 @@ import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.model.Discount
 import se.apps.arctic.prismat.domain.model.ProductWillys
 import se.apps.arctic.prismat.domain.model.stores.StoreItem
-import java.io.IOException
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -25,12 +24,15 @@ class DiscountViewModel: ViewModel() {
 
     val items: StateFlow<MutableList<Discount>> = _items
     var apiState by mutableStateOf(ApiState.LOADING)
+    var error by mutableStateOf("")
     val hasDiscounts get() = _items.value.isNotEmpty()
 
     suspend fun loadDiscounts() {
         if (gettingStores) { return }
 
         gettingStores = true
+        error = ""
+        apiState = ApiState.LOADING
 
         try {
             val apiService = ApiService()
@@ -52,6 +54,7 @@ class DiscountViewModel: ViewModel() {
             gettingStores = false
         } catch (e: Exception) {
             Log.d(Constants.LOGCAT_FILTER, e.message.toString())
+            error = e.message.toString()
             apiState = ApiState.ERROR
             gettingStores = false
         }
