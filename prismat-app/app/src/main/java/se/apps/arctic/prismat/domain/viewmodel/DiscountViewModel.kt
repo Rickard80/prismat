@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -53,8 +54,8 @@ class DiscountViewModel: ViewModel() {
             apiState = ApiState.SUCCESS
             gettingStores = false
         } catch (e: Exception) {
-            Log.d(Constants.LOGCAT_FILTER, e.message.toString())
-            error = e.message.toString()
+            e.localizedMessage?.let { Log.d(Constants.LOGCAT_FILTER, it) }
+            error = "loading discounts: " + (e.localizedMessage?.toString() ?: ApiState.ERROR.toString())
             apiState = ApiState.ERROR
             gettingStores = false
         }
@@ -74,6 +75,7 @@ class DiscountViewModel: ViewModel() {
             product = apiService.getWillysProducts(url)
         } catch (e: Exception) {
             Log.d("fetchWillysDiscounts", e.message.toString())
+            error = "fetching discounts: " + (e.localizedMessage?.toString() ?: ApiState.ERROR.toString())
             apiState = ApiState.ERROR
             return emptyList()
         }
