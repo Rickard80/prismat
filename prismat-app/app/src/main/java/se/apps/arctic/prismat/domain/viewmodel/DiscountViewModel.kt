@@ -84,15 +84,18 @@ class DiscountViewModel: ViewModel() {
 
         product.paginationData.items.forEach {
             if (it.savingsAmount != 0.0) {
-                val savedPrice = it.priceValue - it.savingsAmount
-                val percentage = 100 - (savedPrice / it.priceValue * 100).roundToInt()
-
-//                Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val promo = it.potentialPromotions.first()
                 val hasSpecialOffer = promo.conditionLabelFormatted.isNotEmpty()
+                val quantity = if (promo.qualifyingCount == 0) 1 else promo.qualifyingCount
+
+                val price = it.priceValue * quantity
+                val savedPrice = price - Math.abs(it.savingsAmount)
+                val percentage = 100 - (savedPrice / price * 100).roundToInt()
+
+                // Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}".replace("+pant", "").trim()
                 var comparePrice = it.comparePrice
-                var unit = "---"
+                var unit = promo.conditionLabel
 
                 if (!promo.comparePrice.isNullOrEmpty()) {
                     unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
@@ -103,7 +106,7 @@ class DiscountViewModel: ViewModel() {
                     id = UUID.randomUUID().hashCode(),
                     title = it.name,
                     subtitle = it.productLine2,
-                    price = if (hasSpecialOffer) { specialOffer } else savedPrice.roundToInt().toString() + it.priceUnit,
+                    price = if (hasSpecialOffer) { specialOffer } else "${savedPrice.roundToInt()} ${it.priceUnit}",
                     discount = percentage,
                     comparePrice = "${comparePrice}${unit}",
                     store = SupportedStores.WILLYS

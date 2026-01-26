@@ -18,12 +18,12 @@ val patchVersion = (minorVersion?.times(10)?.let { numberOfCommits?.minus(it) })
 
 android {
     namespace = "se.apps.arctic.prismat"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "se.apps.arctic.prismat"
         minSdk = 33
-        targetSdk = 34
+        targetSdk = 35
         versionCode = numberOfCommits
         versionName = "$majorVersion.$minorVersion.$patchVersion"
 

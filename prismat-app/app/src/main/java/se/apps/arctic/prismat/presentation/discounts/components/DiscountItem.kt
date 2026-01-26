@@ -53,10 +53,10 @@ fun DiscountItem(item: Discount) {
             )
             .padding(vertical = Theme.spacing.half, horizontal = Theme.spacing.normal)
         ) {
-            Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 1.dp)) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.titleSmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -66,13 +66,13 @@ fun DiscountItem(item: Discount) {
                 Text(text = item.price,
                     textAlign = TextAlign.Right,
                     maxLines = 1,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(rightHandWeight)
                 )
             }
 
-            Row(modifier = Modifier.padding(bottom = 1.dp)) {
+            Row(modifier = Modifier.padding(bottom = 6.dp)) {
                 item.subtitle?.let {
                     Text(
                         text = it,
@@ -93,7 +93,7 @@ fun DiscountItem(item: Discount) {
                     modifier = Modifier.weight(rightHandWeight))
             }
 
-            Row {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Store(item.store.name, Color(0xFF0079FF), modifier = Modifier.weight(1F))
 
                 DiscountSign(discount = item.discount, modifier = Modifier.padding(top =1.dp))
@@ -119,7 +119,7 @@ private fun Store(name: String, color: Color, modifier: Modifier) {
 private fun DiscountSign(discount: Int, modifier: Modifier) {
     Box(modifier = modifier
         .background(Color.Red, RoundedCornerShape(4.dp))
-        .padding(start = 4.dp, end = 3.dp)
+        .padding(start = 6.dp, end = 4.dp)
     ) {
         Text(text = "-${discount}%", style = MaterialTheme.typography.labelMedium, letterSpacing = TextUnit(-0.7F, TextUnitType.Sp), color = Color.Yellow, modifier = Modifier
             .align(Alignment.Center)
@@ -136,8 +136,8 @@ fun DiscountItemPreview() {
             Discount(
                 0,
                 "Titel som är väldigt lång och tilltagen",
-                "Subtitle  ska visa att titel när väldigt lång som tusan",
-                "100",
+                "Subtitle ska visa att titel när väldigt lång som tusan",
+                "100 kr",
                 10,
                 "100kr/kg",
                 SupportedStores.WILLYS

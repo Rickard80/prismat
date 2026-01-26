@@ -26,8 +26,7 @@ import se.apps.arctic.prismat.ui.theme.spacing
 
 @Composable
 fun ErrorScreen(
-    type: ApiState,
-    errorText: String
+    type: ApiState
 ) {
 
     Column(modifier = Modifier
@@ -52,7 +51,7 @@ fun ErrorScreen(
             .padding(Theme.spacing.normal),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = errorText, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(text = stringResource(type.getText()), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
         }
     }
 }
@@ -62,6 +61,6 @@ fun ErrorScreen(
 @Composable
 fun ErrorScreenPreview() {
     PrismatTheme {
-        ErrorScreen( ApiState.ERROR, "This is an error")
+        ErrorScreen( ApiState.ERROR)
     }
 }

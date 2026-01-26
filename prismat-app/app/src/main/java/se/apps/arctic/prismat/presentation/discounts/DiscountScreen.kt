@@ -17,16 +17,18 @@ import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
 import se.apps.arctic.prismat.presentation.discounts.components.DiscountItem
 import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
+import se.apps.arctic.prismat.ui.theme.Theme
+import se.apps.arctic.prismat.ui.theme.spacing
 
 @Composable
 fun DiscountScreen(
     discountViewModel: DiscountViewModel
 ) {
     val discounts = discountViewModel.items.collectAsState()
-    val listSpacing = if (isSystemInDarkTheme()) 6.dp else 4.dp
+    val listSpacing = if (isSystemInDarkTheme()) Theme.spacing.half else Theme.spacing.quarter
 
     if (discounts.value.isEmpty()) {
-        ErrorScreen(ApiState.NO_DISCOUNTS, stringResource(ApiState.NO_DISCOUNTS.getText()))
+        ErrorScreen(ApiState.NO_DISCOUNTS)
     } else {
         LazyColumn(
             contentPadding = PaddingValues(top = listSpacing, bottom = listSpacing),

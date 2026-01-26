@@ -3,11 +3,17 @@ package se.apps.arctic.prismat
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import se.apps.arctic.prismat.domain.model.ApiState
@@ -22,13 +28,8 @@ class MainActivity : AppCompatActivity() {
     private val discountViewModel = DiscountViewModel()
 
     private fun setupInternetConnectionMonitor() {
-        val networkRequest = NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build()
-
-        // Set up callback
         val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
-        connectivityManager.requestNetwork(networkRequest, networkCallback)
+        connectivityManager.registerDefaultNetworkCallback(networkCallback)
 
         val network = connectivityManager.activeNetwork
         val capabilities = connectivityManager.getNetworkCapabilities(network)
@@ -59,6 +60,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
 Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} started")
@@ -66,13 +68,31 @@ Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VE
 
         setContent {
             PrismatTheme(dynamicColor = false, /*darkTheme = false*/) {
-                when (discountViewModel.apiState) {
-                    ApiState.LOADING -> LoadingScreen()
-                    ApiState.SUCCESS -> DiscountScreen(discountViewModel)
-                    ApiState.ERROR -> ErrorScreen(ApiState.ERROR, discountViewModel.error)
-                    ApiState.NO_INTERNET, ApiState.NO_DISCOUNTS -> ErrorScreen(ApiState.NO_INTERNET, discountViewModel.error)
-                }
+                AppContent(discountViewModel)
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
+        connectivityManager.unregisterNetworkCallback(networkCallback)
+    }
+}
+
+@Composable
+fun AppContent(discountViewModel: DiscountViewModel) {
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    
+    androidx.compose.material3.Surface(
+        modifier = Modifier.padding(systemBarsPadding),
+        color = androidx.compose.material3.MaterialTheme.colorScheme.background
+    ) {
+        when (discountViewModel.apiState) {
+            ApiState.LOADING -> LoadingScreen()
+            ApiState.SUCCESS -> DiscountScreen(discountViewModel)
+            ApiState.ERROR -> ErrorScreen(ApiState.ERROR)
+            ApiState.NO_INTERNET, ApiState.NO_DISCOUNTS -> ErrorScreen(ApiState.NO_INTERNET)
         }
     }
 }
