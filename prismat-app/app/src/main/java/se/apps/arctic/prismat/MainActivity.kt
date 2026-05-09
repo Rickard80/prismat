@@ -1,12 +1,10 @@
 package se.apps.arctic.prismat
 
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -14,8 +12,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
+import se.apps.arctic.prismat.data.NetworkMonitor
 import se.apps.arctic.prismat.domain.model.ApiState
 import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
@@ -25,30 +26,38 @@ import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
 class MainActivity : AppCompatActivity() {
-    private val discountViewModel = DiscountViewModel()
+    private val discountViewModel: DiscountViewModel by viewModels()
+    private lateinit var networkMonitor: NetworkMonitor
 
-    private fun setupInternetConnectionMonitor() {
-        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
-        connectivityManager.registerDefaultNetworkCallback(networkCallback)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
 
-        val network = connectivityManager.activeNetwork
-        val capabilities = connectivityManager.getNetworkCapabilities(network)
-        val hasInternetConnection = capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        networkMonitor = NetworkMonitor(this)
+        observeNetwork()
 
-        if (!hasInternetConnection) {
-            discountViewModel.apiState = ApiState.NO_INTERNET
-            discountViewModel.error = getString(ApiState.NO_INTERNET.getText())
+        Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} started")
+
+        setContent {
+            PrismatTheme(dynamicColor = false) {
+                AppContent(discountViewModel)
+            }
         }
     }
 
-    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            super.onCapabilitiesChanged(network, networkCapabilities)
-
-            val hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-
-            if (hasInternet && !discountViewModel.hasDiscounts) {
-                loadDiscounts()
+    private fun observeNetwork() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                networkMonitor.isConnected.collect { isConnected ->
+                    if (isConnected) {
+                        if (!discountViewModel.hasDiscounts) {
+                            loadDiscounts()
+                        }
+                    } else {
+                        discountViewModel.apiState = ApiState.NO_INTERNET
+                        discountViewModel.error = getString(ApiState.NO_INTERNET.getText())
+                    }
+                }
             }
         }
     }
@@ -57,26 +66,6 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             discountViewModel.loadDiscounts()
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-
-Log.d(Constants.LOGCAT_FILTER, "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME} started")
-        setupInternetConnectionMonitor()
-
-        setContent {
-            PrismatTheme(dynamicColor = false, /*darkTheme = false*/) {
-                AppContent(discountViewModel)
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        val connectivityManager = getSystemService(ConnectivityManager::class.java) as ConnectivityManager
-        connectivityManager.unregisterNetworkCallback(networkCallback)
     }
 }
 
