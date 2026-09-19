@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,7 +25,7 @@ import se.apps.arctic.prismat.ui.theme.spacing
 fun DiscountScreen(
     discountViewModel: DiscountViewModel
 ) {
-    val discounts = discountViewModel.items.collectAsState()
+    val discounts = discountViewModel.items.collectAsStateWithLifecycle()
     val listSpacing = if (isSystemInDarkTheme()) Theme.spacing.half else Theme.spacing.quarter
 
     if (discounts.value.isEmpty()) {

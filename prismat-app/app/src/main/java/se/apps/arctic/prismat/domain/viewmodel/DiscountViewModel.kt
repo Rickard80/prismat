@@ -19,11 +19,11 @@ import java.util.UUID
 import kotlin.math.roundToInt
 
 class DiscountViewModel: ViewModel() {
-    private var _items = MutableStateFlow(mutableListOf<Discount>())
+    private var _items = MutableStateFlow<List<Discount>>(emptyList())
     private val apiService = ApiService()
     private var gettingStores = false
 
-    val items: StateFlow<MutableList<Discount>> = _items
+    val items: StateFlow<List<Discount>> = _items
     var apiState by mutableStateOf(ApiState.LOADING)
     var error by mutableStateOf("")
     val hasDiscounts get() = _items.value.isNotEmpty()
@@ -45,11 +45,13 @@ class DiscountViewModel: ViewModel() {
                 fetchDiscounts(storeItem)
             }
 
+            val allDiscounts = mutableListOf<Discount>()
             jobs.forEach { discounts ->
-                _items.value.addAll(discounts)
+                allDiscounts.addAll(discounts)
             }
 
-            _items.value.sortWith(compareBy { it.title} )
+            allDiscounts.sortWith(compareBy { it.title })
+            _items.value = allDiscounts
 
             apiState = ApiState.SUCCESS
             gettingStores = false
@@ -118,11 +120,11 @@ class DiscountViewModel: ViewModel() {
     }
 
     fun addDiscount(discount: Discount) {
-        _items.value.add(discount)
+        _items.value = _items.value + discount
     }
 
     fun removeDiscount(discount: Discount) {
-        _items.value.remove(discount)
+        _items.value = _items.value - discount
     }
 
     fun getDiscounts() = items
@@ -130,19 +132,24 @@ class DiscountViewModel: ViewModel() {
     fun getDiscount(index: Int) = _items.value[index]
 
     fun clearDiscounts() {
-        _items.value.clear()
+        _items.value = emptyList()
     }
 
     fun updateDiscount(discount: Discount) {
-        _items.value[_items.value.indexOf(discount)] = discount
+        val index = _items.value.indexOf(discount)
+        if (index != -1) {
+            updateDiscount(index, discount)
+        }
     }
 
     fun updateDiscount(index: Int, discount: Discount) {
-        _items.value[index] = discount
+        val list = _items.value.toMutableList()
+        list[index] = discount
+        _items.value = list
     }
 
     fun overwriteDiscounts(list: List<Discount>) {
-        _items.value = list.toMutableList()
+        _items.value = list
     }
 
     object Testing {
