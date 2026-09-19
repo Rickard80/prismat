@@ -18,12 +18,12 @@ val patchVersion = (minorVersion?.times(10)?.let { numberOfCommits?.minus(it) })
 
 android {
     namespace = "se.apps.arctic.prismat"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "se.apps.arctic.prismat"
         minSdk = 33
-        targetSdk = 35
+        targetSdk = 37
         versionCode = numberOfCommits
         versionName = "$majorVersion.$minorVersion.$patchVersion"
 
@@ -33,6 +33,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -61,7 +62,7 @@ dependencies {
 
     // Compose
     implementation(libs.androidx.ui)                         // UI elements
-    implementation(libs.androidx.material)                   // Material Design
+    implementation(libs.androidx.material3.android)          // Material Design
     implementation(libs.androidx.activity.compose)           // Integration
     implementation(libs.androidx.ui.tooling)                 // Preview - excluded when minimized
     implementation(libs.androidx.lifecycle.runtime.compose)  // Background activity
@@ -69,5 +70,4 @@ dependencies {
     // Retrofit, Gson
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
-    implementation(libs.androidx.material3.android)
 }
