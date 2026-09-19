@@ -60,11 +60,11 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
 
     // Compose
-    implementation(libs.androidx.ui)                    // UI elements
-    implementation(libs.androidx.material)              // Material Design
-    implementation(libs.androidx.activity.compose)      // Integration
-    implementation(libs.androidx.ui.tooling)            // Preview - excluded when minimized
-    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.ui)                         // UI elements
+    implementation(libs.androidx.material)                   // Material Design
+    implementation(libs.androidx.activity.compose)           // Integration
+    implementation(libs.androidx.ui.tooling)                 // Preview - excluded when minimized
+    implementation(libs.androidx.lifecycle.runtime.compose)  // Background activity
 
     // Retrofit, Gson
     implementation(libs.retrofit)

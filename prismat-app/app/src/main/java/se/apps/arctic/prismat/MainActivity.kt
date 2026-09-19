@@ -50,12 +50,14 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 networkMonitor.isConnected.collect { isConnected ->
                     if (isConnected) {
-                        if (!discountViewModel.hasDiscounts) {
+                        if (!discountViewModel.hasDiscounts || discountViewModel.apiState == ApiState.NO_INTERNET || discountViewModel.apiState == ApiState.ERROR) {
                             loadDiscounts()
                         }
                     } else {
-                        discountViewModel.apiState = ApiState.NO_INTERNET
-                        discountViewModel.error = getString(ApiState.NO_INTERNET.getText())
+                        if (!discountViewModel.hasDiscounts) {
+                            discountViewModel.apiState = ApiState.NO_INTERNET
+                            discountViewModel.error = getString(ApiState.NO_INTERNET.getText())
+                        }
                     }
                 }
             }
@@ -77,11 +79,16 @@ fun AppContent(discountViewModel: DiscountViewModel) {
         modifier = Modifier.padding(systemBarsPadding),
         color = androidx.compose.material3.MaterialTheme.colorScheme.background
     ) {
-        when (discountViewModel.apiState) {
-            ApiState.LOADING -> LoadingScreen()
-            ApiState.SUCCESS -> DiscountScreen(discountViewModel)
-            ApiState.ERROR -> ErrorScreen(ApiState.ERROR)
-            ApiState.NO_INTERNET, ApiState.NO_DISCOUNTS -> ErrorScreen(ApiState.NO_INTERNET)
+        if (discountViewModel.hasDiscounts && discountViewModel.apiState != ApiState.LOADING) {
+            DiscountScreen(discountViewModel)
+        } else {
+            when (discountViewModel.apiState) {
+                ApiState.LOADING -> LoadingScreen()
+                ApiState.SUCCESS -> DiscountScreen(discountViewModel)
+                ApiState.ERROR -> ErrorScreen(ApiState.ERROR)
+                ApiState.NO_INTERNET -> ErrorScreen(ApiState.NO_INTERNET)
+                ApiState.NO_DISCOUNTS -> ErrorScreen(ApiState.NO_DISCOUNTS)
+            }
         }
     }
 }

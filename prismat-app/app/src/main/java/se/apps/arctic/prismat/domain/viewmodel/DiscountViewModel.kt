@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -57,7 +56,7 @@ class DiscountViewModel: ViewModel() {
             gettingStores = false
         } catch (e: Exception) {
             e.localizedMessage?.let { Log.d(Constants.LOGCAT_FILTER, it) }
-            error = "loading discounts: " + (e.localizedMessage?.toString() ?: ApiState.ERROR.toString())
+            error = "loading discounts: " + (e.localizedMessage ?: ApiState.ERROR.toString())
             apiState = ApiState.ERROR
             gettingStores = false
         }
@@ -76,8 +75,7 @@ class DiscountViewModel: ViewModel() {
         try {
             product = apiService.getWillysProducts(url)
         } catch (e: Exception) {
-            Log.d("fetchWillysDiscounts", e.message.toString())
-            error = "fetching discounts: " + (e.localizedMessage?.toString() ?: ApiState.ERROR.toString())
+            error = "fetching discounts: " + (e.localizedMessage ?: ApiState.ERROR.toString())
             apiState = ApiState.ERROR
             return emptyList()
         }
@@ -99,7 +97,7 @@ class DiscountViewModel: ViewModel() {
                 var comparePrice = it.comparePrice
                 var unit = promo.conditionLabel
 
-                if (!promo.comparePrice.isNullOrEmpty()) {
+                if (promo.comparePrice.isNotEmpty()) {
                     unit = if (promo.comparePrice.endsWith(it.comparePriceUnit)) { "" } else "/" + it.comparePriceUnit
                     comparePrice = promo.comparePrice.ifEmpty { it.comparePrice }
                 }
@@ -120,11 +118,11 @@ class DiscountViewModel: ViewModel() {
     }
 
     fun addDiscount(discount: Discount) {
-        _items.value = _items.value + discount
+        _items.value += discount
     }
 
     fun removeDiscount(discount: Discount) {
-        _items.value = _items.value - discount
+        _items.value -= discount
     }
 
     fun getDiscounts() = items

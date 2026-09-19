@@ -10,7 +10,7 @@ enum class ApiState {
             ERROR -> R.drawable.xmark_circle
             NO_INTERNET -> R.drawable.wifi_slash
             NO_DISCOUNTS -> R.drawable.list_bullet_below_rectangle
-            // Not used
+            // NOT USED
             LOADING -> R.drawable.xmark_circle
             SUCCESS -> R.drawable.xmark_circle
         }
