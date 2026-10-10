@@ -109,7 +109,9 @@ class DiscountViewModel: ViewModel() {
                     price = if (hasSpecialOffer) { specialOffer } else "${savedPrice.roundToInt()} ${it.priceUnit}",
                     discount = percentage,
                     comparePrice = "${comparePrice}${unit}",
-                    store = SupportedStores.WILLYS
+                    store = SupportedStores.WILLYS,
+                    isSelected = false,
+                    isFavorite = false
                 ))
             }
         }
@@ -161,7 +163,9 @@ class DiscountViewModel: ViewModel() {
             price = randomNumber().toString(),
             discount = randomNumber(),
             comparePrice = randomNumber().toString(),
-            store = SupportedStores.WILLYS
+            store = SupportedStores.WILLYS,
+            isSelected = randomNumber() < 30,
+            isFavorite =  randomNumber() < 15
         )
 
         fun fakeList(number: Int = 10) : List<Discount> {

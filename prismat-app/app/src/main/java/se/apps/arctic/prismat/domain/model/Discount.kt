@@ -10,4 +10,6 @@ data class Discount(
     val discount: Int,
     val comparePrice: String,
     val store: SupportedStores,
+    val isSelected: Boolean,
+    val isFavorite: Boolean,
 )

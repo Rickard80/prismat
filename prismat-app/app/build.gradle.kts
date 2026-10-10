@@ -28,6 +28,7 @@ android {
         versionName = "$majorVersion.$minorVersion.$patchVersion"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", "\"https://rickard80.github.io/prismat/\"")
     }
 
     buildTypes {
@@ -47,8 +48,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -66,6 +67,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)           // Integration
     implementation(libs.androidx.ui.tooling)                 // Preview - excluded when minimized
     implementation(libs.androidx.lifecycle.runtime.compose)  // Background activity
+
 
     // Retrofit, Gson
     implementation(libs.retrofit)
