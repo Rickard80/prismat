@@ -1,4 +1,4 @@
-package se.apps.arctic.prismat.presentation.discounts.components
+package se.apps.arctic.prismat.presentation.discounts.components.filterbar
 
 import android.content.res.Configuration
 import androidx.compose.animation.Crossfade
@@ -22,9 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.apps.arctic.prismat.R
-import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
-import se.apps.arctic.prismat.presentation.discounts.FilterType
-import se.apps.arctic.prismat.presentation.discounts.FilterViewModel
+import se.apps.arctic.prismat.domain.viewmodels.DiscountViewModel
+import se.apps.arctic.prismat.domain.viewmodels.FilterType
+import se.apps.arctic.prismat.domain.viewmodels.FilterViewModel
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
 @Composable
@@ -43,7 +43,7 @@ fun FilterButton(
             .size(48.dp),
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(targetState = isSelected, animationSpec =  tween(durationMillis = if (isSelected) 0 else 200, easing = EaseOut)) { isSelected ->
+        Crossfade(targetState = isSelected, animationSpec = tween(durationMillis = if (isSelected) 0 else 200, easing = EaseOut)) { isSelected ->
             isSelected
             if (isSelected) {
                 FilterButtonBackground(R.drawable.filterbutton_selected)
@@ -62,7 +62,7 @@ fun FilterButtonBackground(drawableResource: Int) {
         painter = painterResource(id = drawableResource),
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.FillBounds,
-        contentDescription = "background"
+        contentDescription = "filterbar-background"
     )
 }
 

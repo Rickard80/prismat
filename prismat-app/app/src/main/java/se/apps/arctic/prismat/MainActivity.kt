@@ -13,20 +13,29 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import se.apps.arctic.prismat.data.NetworkMonitor
 import se.apps.arctic.prismat.domain.model.ApiState
 import se.apps.arctic.prismat.domain.model.Constants
-import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
+import se.apps.arctic.prismat.domain.viewmodels.DiscountViewModel
 import se.apps.arctic.prismat.presentation.discounts.DiscountScreen
 import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
 import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
 class MainActivity : AppCompatActivity() {
-    private val discountViewModel: DiscountViewModel by viewModels()
+    private val discountViewModel: DiscountViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return DiscountViewModel(application) as T
+            }
+        }
+    }
     private lateinit var networkMonitor: NetworkMonitor
 
     override fun onCreate(savedInstanceState: Bundle?) {

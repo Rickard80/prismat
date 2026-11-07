@@ -72,4 +72,10 @@ dependencies {
     // Retrofit, Gson
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.datastore.preferences)
+
+    // Testing
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
 }

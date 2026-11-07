@@ -1,5 +1,6 @@
-package se.apps.arctic.prismat.domain.viewmodel
+package se.apps.arctic.prismat.domain.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import se.apps.arctic.prismat.data.local.PrismatDataStore
 import se.apps.arctic.prismat.data.remote.ApiService
 import se.apps.arctic.prismat.domain.SupportedStores
 import se.apps.arctic.prismat.domain.model.ApiState
@@ -17,10 +19,16 @@ import se.apps.arctic.prismat.domain.model.stores.StoreItem
 import java.util.UUID
 import kotlin.math.roundToInt
 
-class DiscountViewModel: ViewModel() {
+class DiscountViewModel(context: Context) : ViewModel() {
+    val prismatDataStore = PrismatDataStore(context)
     private var _items = MutableStateFlow<List<Discount>>(emptyList())
     private val apiService = ApiService()
     private var gettingStores = false
+
+    var currentStoreName: String = SupportedStores.WILLYS.name
+    var currentStoreUrl: String = ""
+    var initialFilter: FilterType = FilterType.ALL
+    var initialSelectedDiscountIds: Set<Int> = emptySet()
 
     val items: StateFlow<List<Discount>> = _items
     var apiState by mutableStateOf(ApiState.LOADING)
@@ -40,12 +48,31 @@ class DiscountViewModel: ViewModel() {
 
             val storeItems = apiService.extractDiscountURLFrom(stores)
 
-            val jobs = storeItems.map { storeItem ->
-                fetchDiscounts(storeItem)
-            }
-
             val allDiscounts = mutableListOf<Discount>()
-            jobs.forEach { discounts ->
+
+            for (storeItem in storeItems) {
+                currentStoreName = storeItem.name.name
+                currentStoreUrl = storeItem.url
+
+                // 1. Save store url (handles weekly mismatch cleanup of old URL's discounts and selected IDs)
+                prismatDataStore.saveStoreUrl(currentStoreName, currentStoreUrl)
+
+                val savedFilterStr = prismatDataStore.getSelectedFilter()
+                initialFilter = try {
+                    FilterType.valueOf(savedFilterStr)
+                } catch (e: Exception) {
+                    FilterType.ALL
+                }
+                initialSelectedDiscountIds = prismatDataStore.getSelectedDiscountIds(currentStoreName, currentStoreUrl)
+
+                // 4. Check cached discounts for this storeItem.url first
+                var discounts = prismatDataStore.getDiscountsForUrl(currentStoreUrl)
+                if (discounts.isEmpty()) {
+                    discounts = fetchDiscounts(storeItem)
+                    if (discounts.isNotEmpty()) {
+                        prismatDataStore.saveDiscountsForUrl(currentStoreUrl, discounts)
+                    }
+                }
                 allDiscounts.addAll(discounts)
             }
 
@@ -56,6 +83,30 @@ class DiscountViewModel: ViewModel() {
             gettingStores = false
         } catch (e: Exception) {
             e.localizedMessage?.let { Log.d(Constants.LOGCAT_FILTER, it) }
+
+            // Fallback to cache if offline/error
+            try {
+                val cachedUrl = prismatDataStore.getStoreUrl(SupportedStores.WILLYS.name)
+                if (cachedUrl != null) {
+                    val cachedDiscounts = prismatDataStore.getDiscountsForUrl(cachedUrl)
+                    if (cachedDiscounts.isNotEmpty()) {
+                        currentStoreUrl = cachedUrl
+                        val savedFilterStr = prismatDataStore.getSelectedFilter()
+                        initialFilter = try {
+                            FilterType.valueOf(savedFilterStr)
+                        } catch (e: Exception) {
+                            FilterType.ALL
+                        }
+                        initialSelectedDiscountIds = prismatDataStore.getSelectedDiscountIds(SupportedStores.WILLYS.name, cachedUrl)
+
+                        _items.value = cachedDiscounts
+                        apiState = ApiState.SUCCESS
+                        gettingStores = false
+                        return
+                    }
+                }
+            } catch (_: Exception) {}
+
             error = "loading discounts: " + (e.localizedMessage ?: ApiState.ERROR.toString())
             apiState = ApiState.ERROR
             gettingStores = false
@@ -92,7 +143,6 @@ class DiscountViewModel: ViewModel() {
                 val savedPrice = price - Math.abs(it.savingsAmount)
                 val percentage = 100 - (savedPrice / price * 100).roundToInt()
 
-                // Log.d(Constants.LOGCAT_FILTER, "fetchWillysDiscounts (${it.name}): $it")
                 val specialOffer = "${promo.conditionLabelFormatted} ${promo.rewardLabel}".replace("+pant", "").trim()
                 var comparePrice = it.comparePrice
                 var unit = promo.conditionLabel
@@ -171,7 +221,7 @@ class DiscountViewModel: ViewModel() {
         fun fakeList(number: Int = 10) : List<Discount> {
             val list = mutableListOf<Discount>()
             for (i in 0..number) {
-                list.add(fakeItem())
+                list.add(fakeItem().copy(id = i))
             }
             return list
         }

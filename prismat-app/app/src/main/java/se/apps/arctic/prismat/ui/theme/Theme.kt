@@ -22,6 +22,7 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = tertiaryDark,
     background = backgroundDark,
     onSurface = onSurfaceDark,
+    secondaryContainer = red,
     error = error
 )
 
@@ -31,8 +32,8 @@ private val LightColorScheme = lightColorScheme(
     tertiary = tertiary,
     background = background,
     onSurface = onSurface,
+    secondaryContainer = grey,
     error = error,
-
 
     /* Other default colors to override
     onPrimary = Color.White,
@@ -42,6 +43,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+
 
 @Composable
 fun PrismatTheme(

@@ -1,9 +1,6 @@
 package se.apps.arctic.prismat.presentation.discounts
-
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,12 +11,15 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import se.apps.arctic.prismat.domain.model.ApiState
-import se.apps.arctic.prismat.domain.viewmodel.DiscountViewModel
+import se.apps.arctic.prismat.domain.viewmodels.DiscountViewModel
+import se.apps.arctic.prismat.domain.viewmodels.FilterType
+import se.apps.arctic.prismat.domain.viewmodels.FilterViewModel
 import se.apps.arctic.prismat.presentation.discounts.components.DiscountItem
-import se.apps.arctic.prismat.presentation.discounts.components.FilterBar
+import se.apps.arctic.prismat.presentation.discounts.components.filterbar.FilterBar
 import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 import se.apps.arctic.prismat.ui.theme.Theme
@@ -32,9 +32,16 @@ fun DiscountScreen(
     val discounts = discountViewModel.items.collectAsStateWithLifecycle()
     
     val currentDiscounts by remember { derivedStateOf { discounts.value } }
-    val filterModel = remember { FilterViewModel(currentDiscounts) }
-
-    val listSpacing = if (isSystemInDarkTheme()) Theme.spacing.half else Theme.spacing.quarter
+    val filterModel = remember(discountViewModel.currentStoreUrl) { 
+        FilterViewModel(
+            allDiscounts = currentDiscounts,
+            prismatDataStore = discountViewModel.prismatDataStore,
+            storeName = discountViewModel.currentStoreName,
+            storeUrl = discountViewModel.currentStoreUrl,
+            initialFilter = discountViewModel.initialFilter,
+            initialSelectedDiscountIds = discountViewModel.initialSelectedDiscountIds
+        ) 
+    }
 
     if (discounts.value.isEmpty()) {
         ErrorScreen(ApiState.NO_DISCOUNTS)
@@ -44,19 +51,18 @@ fun DiscountScreen(
                 if (filterModel.selectedFilter == FilterType.SELECTED) {
                     Text("Click on a discount to select it and it will appear here.")
                 } else if (filterModel.selectedFilter == FilterType.FAVORITE) {
-                    Text("Favorites is not implemented yet.")
+                    Text("Swipe left on a discount to add it to favorites.")
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(top = listSpacing, bottom = listSpacing),
-                    verticalArrangement = Arrangement.spacedBy(listSpacing),
+                    verticalArrangement = Arrangement.spacedBy(Theme.spacing.quarter),
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Use filterModel.filteredDiscounts instead of original discounts.value
-                    items(items = filterModel.filteredDiscounts, key = { item -> item.hashCode() }) { discount ->
+                    items(items = filterModel.filteredDiscounts, key = { item -> item.id }) { discount ->
                         DiscountItem(
                             item = discount,
-                            onClick = { filterModel.toggleDiscountSelection(discount.id) }
+                            onClick = { filterModel.toggleDiscountSelection(discount.id) },
+                            onSwipeLeft = { filterModel.toggleDiscountFavorite(discount.id) }
                         )
                     }
                 }
@@ -70,7 +76,8 @@ fun DiscountScreen(
 @Preview(showBackground = true)
 @Composable
 fun DiscountScreenPreview() {
-    val discountViewmodel = DiscountViewModel()
+    val context = LocalContext.current
+    val discountViewmodel = DiscountViewModel(context)
     discountViewmodel.overwriteDiscounts(DiscountViewModel.Testing.fakeList())
 
     PrismatTheme {
