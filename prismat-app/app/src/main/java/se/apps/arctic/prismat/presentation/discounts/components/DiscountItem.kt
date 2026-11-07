@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import se.apps.arctic.prismat.R
 import se.apps.arctic.prismat.domain.SupportedStores
 import se.apps.arctic.prismat.domain.model.Discount
-import se.apps.arctic.prismat.domain.viewmodels.FilterType
+import se.apps.arctic.prismat.domain.model.FilterType
 import se.apps.arctic.prismat.presentation.discounts.components.filterbar.FilterButton
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 import se.apps.arctic.prismat.ui.theme.Theme
@@ -55,6 +55,7 @@ fun DiscountItem(
     val leftHandWeight = 0.7F
     val rightHandWeight = 1 - leftHandWeight
     val lastRowMinHeight = 24.dp
+    val leftSwipeLimit = 75.dp
 
     val colorStops = arrayOf(
         0.0f to MaterialTheme.colorScheme.secondary,
@@ -65,7 +66,7 @@ fun DiscountItem(
 
     val density = LocalDensity.current
     val dismissState = rememberSwipeToDismissBoxState(
-        positionalThreshold = { with(density) { 50.dp.toPx() } },
+        positionalThreshold = { with(density) { leftSwipeLimit.toPx() } },
         confirmValueChange = { dismissValue ->
             if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
                 onSwipeLeft()
@@ -85,14 +86,14 @@ fun DiscountItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Theme.colorScheme.secondaryContainer)
-                    .padding(end = Theme.spacing.normal),
+                    .padding(end = Theme.spacing.double),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.star_fill),
                     contentDescription = "Favorite",
                     tint = Color.Unspecified,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

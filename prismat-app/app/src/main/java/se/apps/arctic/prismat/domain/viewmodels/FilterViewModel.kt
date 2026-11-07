@@ -1,5 +1,7 @@
 package se.apps.arctic.prismat.domain.viewmodels
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,39 +10,47 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import se.apps.arctic.prismat.data.local.PrismatDataStore
+import se.apps.arctic.prismat.domain.model.Constants.LOGCAT_FILTER
 import se.apps.arctic.prismat.domain.model.Discount
-
-enum class FilterType {
-    ALL,
-    SELECTED,
-    FAVORITE
-}
+import se.apps.arctic.prismat.domain.model.FilterType
 
 class FilterViewModel(
     private val allDiscounts: List<Discount>,
-    private val prismatDataStore: PrismatDataStore? = null,
-    private val storeName: String = "WILLYS",
-    private val storeUrl: String = "",
-    initialFilter: FilterType = FilterType.ALL,
-    initialSelectedDiscountIds: Set<Int> = emptySet()
+    defaultFilter: FilterType = FilterType.NONE,
+    context: Context? = null
 ) : ViewModel() {
-    var selectedFilter by mutableStateOf(initialFilter)
-    var selectedDiscountIds by mutableStateOf<Set<Int>>(initialSelectedDiscountIds)
+    private val prismatDataStore = context?.let { PrismatDataStore(it) }
+
+    var selectedFilter by mutableStateOf(defaultFilter)
+    var selectedDiscountIds by mutableStateOf<Set<Int>>(
+        allDiscounts.filter { it.isSelected }.map { it.id }.toSet()
+    )
     var favoriteDiscountIds by mutableStateOf<Set<Int>>(
         allDiscounts.filter { it.isFavorite }.map { it.id }.toSet()
     )
 
     init {
-        if (prismatDataStore != null && initialFilter == FilterType.ALL && initialSelectedDiscountIds.isEmpty()) {
+        if (prismatDataStore != null) {
             viewModelScope.launch {
+                // 1. Read selected discount IDs smartly based on store.name and store.url
+                val loadedSelectedIds = mutableSetOf<Int>()
+                val stores = allDiscounts.map { it.store }.toSet()
+                for (store in stores) {
+                    val storeUrl = prismatDataStore.getStoreUrl(store.name) ?: ""
+                    if (storeUrl.isNotEmpty()) {
+                        val ids = prismatDataStore.getSelectedDiscountIds(store.name, storeUrl)
+                        loadedSelectedIds.addAll(ids)
+                    }
+                }
+                selectedDiscountIds = loadedSelectedIds
+
+                // 2. Read last selected filter
                 val savedFilterStr = prismatDataStore.getSelectedFilter()
                 selectedFilter = try {
                     FilterType.valueOf(savedFilterStr)
                 } catch (e: Exception) {
                     FilterType.ALL
                 }
-
-                selectedDiscountIds = prismatDataStore.getSelectedDiscountIds(storeName, storeUrl)
             }
         }
     }
@@ -65,6 +75,7 @@ class FilterViewModel(
                     isFavorite = false
                 )
             }
+            else -> emptyList()
         }
     }
 
@@ -83,9 +94,17 @@ class FilterViewModel(
         } else {
             selectedDiscountIds + discountId
         }
+
         if (prismatDataStore != null) {
             viewModelScope.launch {
-                prismatDataStore.saveSelectedDiscountIds(storeName, storeUrl, selectedDiscountIds)
+                val discount = allDiscounts.find { it.id == discountId }
+                if (discount != null) {
+                    val store = discount.store
+                    val storeUrl = prismatDataStore.getStoreUrl(store.name) ?: ""
+                    val storeItemIds = allDiscounts.filter { it.store == store }.map { it.id }.toSet()
+                    val storeSelectedIds = selectedDiscountIds.intersect(storeItemIds)
+                    prismatDataStore.saveSelectedDiscountIds(store.name, storeUrl, storeSelectedIds)
+                }
             }
         }
     }
@@ -95,15 +114,6 @@ class FilterViewModel(
             favoriteDiscountIds - discountId
         } else {
             favoriteDiscountIds + discountId
-        }
-    }
-
-    fun saveFilterSettings() {
-        if (prismatDataStore != null) {
-            viewModelScope.launch {
-                prismatDataStore.saveSelectedFilter(selectedFilter.name)
-                prismatDataStore.saveSelectedDiscountIds(storeName, storeUrl, selectedDiscountIds)
-            }
         }
     }
 }

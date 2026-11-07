@@ -10,8 +10,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import se.apps.arctic.prismat.domain.model.FilterType
 import se.apps.arctic.prismat.domain.viewmodels.DiscountViewModel
-import se.apps.arctic.prismat.domain.viewmodels.FilterType
 import se.apps.arctic.prismat.domain.viewmodels.FilterViewModel
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 import se.apps.arctic.prismat.ui.theme.Theme
@@ -27,13 +27,15 @@ fun FilterBar(
         horizontalArrangement = Arrangement.spacedBy(Theme.spacing.double, Alignment.CenterHorizontally),
     ) {
         FilterType.entries.forEach { type ->
-            FilterButton(
-                filterType = type,
-                isSelected = filterViewModel.selectedFilter == type,
-                onClick = {
-                    filterViewModel.setFilter(type)
-                },
-            )
+            if (type != FilterType.NONE) {
+                FilterButton(
+                    filterType = type,
+                    isSelected = filterViewModel.selectedFilter == type,
+                    onClick = {
+                        filterViewModel.setFilter(type)
+                    },
+                )
+            }
         }
     }
 }

@@ -22,8 +22,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import se.apps.arctic.prismat.R
+import se.apps.arctic.prismat.domain.model.FilterType
 import se.apps.arctic.prismat.domain.viewmodels.DiscountViewModel
-import se.apps.arctic.prismat.domain.viewmodels.FilterType
 import se.apps.arctic.prismat.domain.viewmodels.FilterViewModel
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
 
