@@ -20,8 +20,8 @@ enum class ApiState {
         return when (this) {
             NO_INTERNET -> R.string.no_internet
             NO_DISCOUNTS -> R.string.no_discounts
-            // NOT USED
             ERROR -> R.string.network_error
+            // NOT USED
             LOADING -> R.string.network_error
             SUCCESS -> R.string.network_error
         }

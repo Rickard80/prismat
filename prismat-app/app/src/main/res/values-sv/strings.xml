@@ -3,4 +3,6 @@
     <string name="network_error">Nätverksfel. Var god försök senare.</string>
     <string name="no_internet">Ingen förbindelse. Kontrollera din internetuppkoppling.</string>
     <string name="no_discounts">Inga rabatter finns tillgängliga. Var god försök senare.</string>
+    <string name="onboarding_selected">Tryck på en rabatt så dyker den upp här.</string>
+    <string name="onboarding_favorites">Svep vänster på en rabatt så dyker den upp här.</string>
 </resources>

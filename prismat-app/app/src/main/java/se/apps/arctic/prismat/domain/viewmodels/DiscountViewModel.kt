@@ -6,19 +6,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import se.apps.arctic.prismat.data.local.PrismatDataStore
 import se.apps.arctic.prismat.data.remote.ApiService
 import se.apps.arctic.prismat.domain.SupportedStores
 import se.apps.arctic.prismat.domain.model.ApiState
 import se.apps.arctic.prismat.domain.model.Constants
 import se.apps.arctic.prismat.domain.model.Discount
-import se.apps.arctic.prismat.domain.model.ProductWillys
+import se.apps.arctic.prismat.domain.model.StoreWillys
 import se.apps.arctic.prismat.domain.model.stores.StoreItem
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 class DiscountViewModel(context: Context) : ViewModel() {
@@ -26,9 +25,6 @@ class DiscountViewModel(context: Context) : ViewModel() {
     private var _items = MutableStateFlow<List<Discount>>(emptyList())
     private val apiService = ApiService()
     private var gettingStores = false
-
-    val storeUrls = mutableMapOf<SupportedStores, String>()
-    val storeSelectedIds = mutableMapOf<SupportedStores, Set<Int>>()
 
     val items: StateFlow<List<Discount>> = _items
     var apiState by mutableStateOf(ApiState.LOADING)
@@ -51,31 +47,21 @@ class DiscountViewModel(context: Context) : ViewModel() {
             for (storeItem in storeItems) {
                 val storeName = storeItem.name.name
                 val storeUrl = storeItem.url
-                storeUrls[storeItem.name] = storeUrl
 
-                // 1. Save store url (handles weekly mismatch cleanup of old URL's discounts and selected IDs)
+                // Save store url (handles weekly mismatch cleanup of old URL's discounts and selected IDs)
                 prismatDataStore.saveStoreUrl(storeName, storeUrl)
 
-                // 3. Get selected discount IDs for this store
-                val selectedIds = prismatDataStore.getSelectedDiscountIds(storeName, storeUrl)
-                storeSelectedIds[storeItem.name] = selectedIds
+                // Check cached discounts for this storeItem.url first
+                var discounts = prismatDataStore.getDiscountsForUrl(storeName)
 
-                // 4. Check cached discounts for this storeItem.url first
-                var discounts = prismatDataStore.getDiscountsForUrl(storeUrl)
                 if (discounts.isEmpty()) {
                     discounts = fetchDiscounts(storeItem)
                     if (discounts.isNotEmpty()) {
-                        prismatDataStore.saveDiscountsForUrl(storeUrl, discounts)
+                        prismatDataStore.saveDiscountsForUrl(storeName, discounts)
                     }
                 }
 
-                val mappedDiscounts = discounts.map {
-                    it.copy(
-                        store = storeItem.name,
-                        isSelected = selectedIds.contains(it.id)
-                    )
-                }
-                allDiscounts.addAll(mappedDiscounts)
+                allDiscounts.addAll(discounts)
             }
 
             allDiscounts.sortWith(compareBy { it.title })
@@ -102,7 +88,7 @@ class DiscountViewModel(context: Context) : ViewModel() {
     }
 
     private suspend fun fetchProductsForStore(url: String, store: SupportedStores): List<Discount> {
-        val product: ProductWillys
+        val product: StoreWillys
 
         Log.d(Constants.LOGCAT_FILTER, "URL ($store): $url")
         try {
@@ -124,7 +110,7 @@ class DiscountViewModel(context: Context) : ViewModel() {
                 val quantity = if (promo == null || promo.qualifyingCount == 0) 1 else promo.qualifyingCount
 
                 val price = it.priceValue * quantity
-                val savedPrice = price - Math.abs(it.savingsAmount)
+                val savedPrice = price - abs(it.savingsAmount)
                 val percentage = 100 - (savedPrice / price * 100).roundToInt()
 
                 val specialOffer = if (promo != null) {
@@ -161,18 +147,21 @@ class DiscountViewModel(context: Context) : ViewModel() {
         _items.value = list
     }
 
+    /*** TEST DATA FOR PREVIEW ***/
+
     object Testing {
         private fun randomNumber(min: Int = 0, max: Int = 100) = (Math.random() * (max - min) + min).roundToInt()
-        private fun getFruits() = listOf("Banana", "Apple", "Orange", "Mango")
+        private fun getFruits() = listOf("Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape", "Kiwi", "Lingonberry", "Mango", "Nectarine", "Orange", "Pear", "Raspberry", "Strawberry", "Tomato", "Watermelon")
+        private fun randomStore() = SupportedStores.entries.toTypedArray().random()
 
         fun fakeItem() = Discount(
             id = 0,
             title = getFruits().random(),
             subtitle = "Frukt",
-            price = randomNumber().toString(),
+            price = "${randomNumber()} kr" ,
             discount = randomNumber(),
-            comparePrice = randomNumber().toString(),
-            store = SupportedStores.WILLYS,
+            comparePrice = "${randomNumber()} kr/kg",
+            store = randomStore(),
             isSelected = randomNumber() < 30,
             isFavorite =  randomNumber() < 15
         )

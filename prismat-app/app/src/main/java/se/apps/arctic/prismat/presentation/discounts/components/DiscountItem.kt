@@ -45,6 +45,8 @@ import se.apps.arctic.prismat.ui.theme.PrismatTheme
 import se.apps.arctic.prismat.ui.theme.Theme
 import se.apps.arctic.prismat.ui.theme.spacing
 
+val dicountRowMinHeight = 24.dp
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscountItem(
@@ -54,7 +56,6 @@ fun DiscountItem(
 ) {
     val leftHandWeight = 0.7F
     val rightHandWeight = 1 - leftHandWeight
-    val lastRowMinHeight = 24.dp
     val leftSwipeLimit = 75.dp
 
     val colorStops = arrayOf(
@@ -130,7 +131,7 @@ fun DiscountItem(
                 )
             }
 
-            Row(modifier = Modifier.padding(bottom = 6.dp)) {
+            Row(modifier = Modifier.padding(bottom = Theme.spacing.quarter)) {
                 item.subtitle?.let {
                     Text(
                         text = it,
@@ -153,22 +154,12 @@ fun DiscountItem(
                 )
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(lastRowMinHeight)) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.heightIn(min = dicountRowMinHeight)) {
                 if (item.isSelected) {
-                    FilterButton(
-                        filterType = FilterType.SELECTED,
-                        isSelected = true,
-                        modifier = Modifier.size(lastRowMinHeight)
-                    )
-                    Spacer(modifier = Modifier.width(Theme.spacing.quarter))
+                    FilterButtonSmall(FilterType.SELECTED)
                 }
                 else if (item.isFavorite) {
-                    FilterButton(
-                        filterType = FilterType.FAVORITE,
-                        isSelected = true,
-                        modifier = Modifier.size(lastRowMinHeight)
-                    )
-                    Spacer(modifier = Modifier.width(Theme.spacing.quarter))
+                    FilterButtonSmall(FilterType.FAVORITE)
                 }
 
                 Store(item.store.name, Color(0xFF0079FF), modifier = Modifier.weight(1F))
@@ -177,6 +168,16 @@ fun DiscountItem(
             }
         }
     }
+}
+
+@Composable
+private fun FilterButtonSmall(filterType: FilterType) {
+    FilterButton(
+        filterType,
+        isSelected = true,
+        modifier = Modifier.size(dicountRowMinHeight)
+    )
+    Spacer(modifier = Modifier.width(Theme.spacing.quarter))
 }
 
 @Composable
@@ -216,8 +217,8 @@ private fun DiscountSign(discount: Int, modifier: Modifier) {
     }
 }
 
-@Preview("Light", showBackground = true)
-@Preview("Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview("Light")
+@Preview("Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DiscountItemPreview() {
     PrismatTheme {
@@ -238,8 +239,8 @@ fun DiscountItemPreview() {
     }
 }
 
-@Preview("Light", showBackground = true)
-@Preview("Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview("Light")
+@Preview("Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DiscountItemSelectedPreview() {
     PrismatTheme {
@@ -260,8 +261,8 @@ fun DiscountItemSelectedPreview() {
     }
 }
 
-@Preview("Light", showBackground = true)
-@Preview("Dark", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview("Light")
+@Preview("Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DiscountItemFavoritePreview() {
     PrismatTheme {

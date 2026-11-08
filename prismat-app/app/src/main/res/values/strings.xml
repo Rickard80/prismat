@@ -3,4 +3,6 @@
     <string name="network_error">Network error. Please try again later!</string>
     <string name="no_internet">No internet connection. Check your internet connection.</string>
     <string name="no_discounts">No discounts available. Try again later.</string>
+    <string name="onboarding_selected">Tap on a discount and it will appear here.</string>
+    <string name="onboarding_favorites">Swipe left on a discount and it will appear here.</string>
 </resources>

@@ -1,7 +1,6 @@
 package se.apps.arctic.prismat.domain.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,7 +9,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import se.apps.arctic.prismat.data.local.PrismatDataStore
-import se.apps.arctic.prismat.domain.model.Constants.LOGCAT_FILTER
 import se.apps.arctic.prismat.domain.model.Discount
 import se.apps.arctic.prismat.domain.model.FilterType
 
@@ -32,20 +30,24 @@ class FilterViewModel(
     init {
         if (prismatDataStore != null) {
             viewModelScope.launch {
-                // 1. Read selected discount IDs smartly based on store.name and store.url
+                // Read saved discount IDs based on store.name
                 val loadedSelectedIds = mutableSetOf<Int>()
+                val loadedFavoritesIds = mutableSetOf<Int>()
                 val stores = allDiscounts.map { it.store }.toSet()
-                for (store in stores) {
-                    val storeUrl = prismatDataStore.getStoreUrl(store.name) ?: ""
-                    if (storeUrl.isNotEmpty()) {
-                        val ids = prismatDataStore.getSelectedDiscountIds(store.name, storeUrl)
-                        loadedSelectedIds.addAll(ids)
-                    }
-                }
-                selectedDiscountIds = loadedSelectedIds
 
-                // 2. Read last selected filter
+                for (store in stores) {
+                    val selectedIds = prismatDataStore.getSelectedDiscountIds(store.name)
+                    loadedSelectedIds.addAll(selectedIds)
+                    val favoritesIds = prismatDataStore.getFavoriteDiscountIds(store.name)
+                    loadedFavoritesIds.addAll(favoritesIds)
+                }
+
+                selectedDiscountIds = loadedSelectedIds
+                favoriteDiscountIds = loadedFavoritesIds
+
+                // Read last selected filter
                 val savedFilterStr = prismatDataStore.getSelectedFilter()
+
                 selectedFilter = try {
                     FilterType.valueOf(savedFilterStr)
                 } catch (e: Exception) {
@@ -89,31 +91,34 @@ class FilterViewModel(
     }
 
     fun toggleDiscountSelection(discountId: Int) {
+        val discount = filteredDiscounts.find { it.id == discountId }
+
         selectedDiscountIds = if (selectedDiscountIds.contains(discountId)) {
             selectedDiscountIds - discountId
         } else {
             selectedDiscountIds + discountId
         }
 
-        if (prismatDataStore != null) {
+        if (prismatDataStore != null && discount != null) {
             viewModelScope.launch {
-                val discount = allDiscounts.find { it.id == discountId }
-                if (discount != null) {
-                    val store = discount.store
-                    val storeUrl = prismatDataStore.getStoreUrl(store.name) ?: ""
-                    val storeItemIds = allDiscounts.filter { it.store == store }.map { it.id }.toSet()
-                    val storeSelectedIds = selectedDiscountIds.intersect(storeItemIds)
-                    prismatDataStore.saveSelectedDiscountIds(store.name, storeUrl, storeSelectedIds)
-                }
+                prismatDataStore.saveSelectedDiscountIds(discount.store.name, selectedDiscountIds)
             }
         }
     }
 
     fun toggleDiscountFavorite(discountId: Int) {
+        val discount = filteredDiscounts.find { it.id == discountId }
+
         favoriteDiscountIds = if (favoriteDiscountIds.contains(discountId)) {
             favoriteDiscountIds - discountId
         } else {
             favoriteDiscountIds + discountId
+        }
+
+        if (prismatDataStore != null && discount != null) {
+            viewModelScope.launch {
+                prismatDataStore.saveFavoriteDiscountIds(discount.store.name, favoriteDiscountIds)
+            }
         }
     }
 }

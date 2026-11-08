@@ -22,8 +22,8 @@ fun FilterButtonIcon(filterType: FilterType, modifier: Modifier = Modifier) {
         painter = painterResource(id = when (filterType) {
             FilterType.ALL -> R.drawable.list_dash
             FilterType.SELECTED -> R.drawable.square_and_pencil
-            FilterType.FAVORITE -> R.drawable.star_fill
-            FilterType.NONE -> R.drawable.star_fill
+            // FilterType.FAVORITE -> R.drawable.star_fill
+            else -> R.drawable.star_fill
         }),
         contentDescription = filterType.name,
         tint = Color.Unspecified,

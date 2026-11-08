@@ -2,6 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.Prismat" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
     </style>
 
     <style name="Theme.Prismat" parent="Base.Theme.Prismat" />

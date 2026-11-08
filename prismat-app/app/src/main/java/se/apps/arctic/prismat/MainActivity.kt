@@ -26,6 +26,7 @@ import se.apps.arctic.prismat.presentation.discounts.DiscountScreen
 import se.apps.arctic.prismat.presentation.errorscreen.ErrorScreen
 import se.apps.arctic.prismat.presentation.loadingscreen.LoadingScreen
 import se.apps.arctic.prismat.ui.theme.PrismatTheme
+import se.apps.arctic.prismat.ui.theme.Theme
 
 class MainActivity : AppCompatActivity() {
     private val discountViewModel: DiscountViewModel by viewModels {
@@ -86,7 +87,7 @@ fun AppContent(discountViewModel: DiscountViewModel) {
     
     androidx.compose.material3.Surface(
         modifier = Modifier.padding(systemBarsPadding),
-        color = androidx.compose.material3.MaterialTheme.colorScheme.background
+        color = Theme.colorScheme.background
     ) {
         if (discountViewModel.hasDiscounts && discountViewModel.apiState != ApiState.LOADING) {
             DiscountScreen(discountViewModel)

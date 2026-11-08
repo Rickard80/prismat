@@ -1,6 +1,8 @@
 package se.apps.arctic.prismat.data.local
 
 import android.content.Context
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -20,9 +22,12 @@ class PrismatDataStore(private val context: Context) {
         private val SELECTED_FILTER_KEY = stringPreferencesKey("selected_filter")
 
         private fun storeUrlKey(storeName: String) = stringPreferencesKey("store_url_$storeName")
-        private fun selectedDiscountsKey(storeName: String, storeUrl: String) = stringPreferencesKey("selected_discounts_${storeName}_$storeUrl")
-        private fun discountListKey(storeUrl: String) = stringPreferencesKey("discount_list_$storeUrl")
+        private fun selectedDiscountsKey(storeName: String) = stringPreferencesKey("selected_discounts_${storeName}")
+        private fun favoritesDiscountsKey(storeName: String) = stringPreferencesKey("favorite_discounts_${storeName}")
+        private fun discountListKey(storeName: String) = stringPreferencesKey("discount_list_$storeName")
     }
+
+    /*** LAST SELECTED FILTER ***/
 
     val selectedFilterFlow: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[SELECTED_FILTER_KEY] ?: "ALL"
@@ -38,34 +43,31 @@ class PrismatDataStore(private val context: Context) {
         return selectedFilterFlow.first()
     }
 
-    // 1. storeItem.url for each store & handling weekly update cleanup
+    /*** STORE URL ***/
+
     suspend fun saveStoreUrl(storeName: String, url: String) {
         context.dataStore.edit { preferences ->
             val key = storeUrlKey(storeName)
             val oldUrl = preferences[key]
+
             if (oldUrl != null && oldUrl != url) {
-                // If storeItem.url doesn't match a new one, delete information in that storeItem.url
-                preferences.remove(selectedDiscountsKey(storeName, oldUrl))
-                preferences.remove(discountListKey(oldUrl))
+                deleteStoreInformation(storeName, preferences)
             }
+
             preferences[key] = url
         }
     }
 
-    suspend fun getStoreUrl(storeName: String): String? {
-        return context.dataStore.data.first()[storeUrlKey(storeName)]
+    fun deleteStoreInformation(storeName: String, preferences: MutablePreferences) {
+        preferences.remove(selectedDiscountsKey(storeName))
+        preferences.remove(favoritesDiscountsKey(storeName))
+        preferences.remove(discountListKey(storeName))
     }
 
-    // 3. selectedDiscountIds based on a) id, b) store, c) storeItem.url
-    suspend fun saveSelectedDiscountIds(storeName: String, storeUrl: String, ids: Set<Int>) {
-        context.dataStore.edit { preferences ->
-            val key = selectedDiscountsKey(storeName, storeUrl)
-            preferences[key] = gson.toJson(ids)
-        }
-    }
+    /*** ID HANDLER HELPER ***/
 
-    suspend fun getSelectedDiscountIds(storeName: String, storeUrl: String): Set<Int> {
-        val json = context.dataStore.data.first()[selectedDiscountsKey(storeName, storeUrl)] ?: return emptySet()
+    suspend fun getIds(key: Preferences.Key<String>): Set<Int> {
+        val json = context.dataStore.data.first()[key] ?: return emptySet()
         val type = object : TypeToken<Set<Int>>() {}.type
         return try {
             gson.fromJson(json, type) ?: emptySet()
@@ -74,16 +76,43 @@ class PrismatDataStore(private val context: Context) {
         }
     }
 
-    // 4. list in fetchWillysDiscounts stored based on storeItem.url
-    suspend fun saveDiscountsForUrl(storeUrl: String, discounts: List<Discount>) {
+    suspend fun saveIds(key: Preferences.Key<String>, ids: Set<Int>) {
         context.dataStore.edit { preferences ->
-            val key = discountListKey(storeUrl)
+            preferences[key] = gson.toJson(ids)
+        }
+    }
+
+    /*** DISCOUNT IDS ***/
+
+    suspend fun getSelectedDiscountIds(storeName: String): Set<Int> {
+        return getIds(selectedDiscountsKey(storeName))
+    }
+
+    suspend fun saveSelectedDiscountIds(storeName: String, ids: Set<Int>) {
+        return saveIds(selectedDiscountsKey(storeName), ids)
+    }
+
+    /*** FAVORITES IDS ***/
+
+    suspend fun getFavoriteDiscountIds(storeName: String): Set<Int> {
+        return getIds(favoritesDiscountsKey(storeName))
+    }
+
+    suspend fun saveFavoriteDiscountIds(storeName: String, ids: Set<Int>) {
+        return saveIds(favoritesDiscountsKey(storeName), ids)
+    }
+
+    /*** DISCOUNT LISTS FOR EACH STORE ***/
+
+    suspend fun saveDiscountsForUrl(storeName: String, discounts: List<Discount>) {
+        context.dataStore.edit { preferences ->
+            val key = discountListKey(storeName)
             preferences[key] = gson.toJson(discounts)
         }
     }
 
-    suspend fun getDiscountsForUrl(storeUrl: String): List<Discount> {
-        val json = context.dataStore.data.first()[discountListKey(storeUrl)] ?: return emptyList()
+    suspend fun getDiscountsForUrl(storeName: String): List<Discount> {
+        val json = context.dataStore.data.first()[discountListKey(storeName)] ?: return emptyList()
         val type = object : TypeToken<List<Discount>>() {}.type
         return try {
             gson.fromJson(json, type) ?: emptyList()
