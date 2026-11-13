@@ -28,9 +28,15 @@ fun FilterBar(
     ) {
         FilterType.entries.forEach { type ->
             if (type != FilterType.NONE) {
+                val flashTrigger = when (type) {
+                    FilterType.SELECTED -> filterViewModel.selectedFlashTrigger
+                    FilterType.FAVORITE -> filterViewModel.favoriteFlashTrigger
+                    else -> 0L
+                }
                 FilterButton(
                     filterType = type,
                     isSelected = filterViewModel.selectedFilter == type,
+                    flashTrigger = flashTrigger,
                     onClick = {
                         filterViewModel.setFilter(type)
                     },

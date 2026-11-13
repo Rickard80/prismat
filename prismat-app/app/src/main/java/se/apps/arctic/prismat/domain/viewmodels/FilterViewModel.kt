@@ -26,6 +26,8 @@ class FilterViewModel(
     var favoriteDiscountIds by mutableStateOf<Set<Int>>(
         allDiscounts.filter { it.isFavorite }.map { it.id }.toSet()
     )
+    var selectedFlashTrigger by mutableStateOf(0L)
+    var favoriteFlashTrigger by mutableStateOf(0L)
 
     init {
         if (prismatDataStore != null) {
@@ -91,12 +93,17 @@ class FilterViewModel(
     }
 
     fun toggleDiscountSelection(discountId: Int) {
-        val discount = filteredDiscounts.find { it.id == discountId }
+        val discount = filteredDiscounts.find { it.id == discountId } ?: allDiscounts.find { it.id == discountId }
 
-        selectedDiscountIds = if (selectedDiscountIds.contains(discountId)) {
-            selectedDiscountIds - discountId
-        } else {
+        val isAdding = !selectedDiscountIds.contains(discountId)
+        selectedDiscountIds = if (isAdding) {
             selectedDiscountIds + discountId
+        } else {
+            selectedDiscountIds - discountId
+        }
+
+        if (isAdding && selectedFilter != FilterType.SELECTED) {
+            selectedFlashTrigger = System.currentTimeMillis()
         }
 
         if (prismatDataStore != null && discount != null) {
@@ -107,12 +114,17 @@ class FilterViewModel(
     }
 
     fun toggleDiscountFavorite(discountId: Int) {
-        val discount = filteredDiscounts.find { it.id == discountId }
+        val discount = filteredDiscounts.find { it.id == discountId } ?: allDiscounts.find { it.id == discountId }
 
-        favoriteDiscountIds = if (favoriteDiscountIds.contains(discountId)) {
-            favoriteDiscountIds - discountId
-        } else {
+        val isAdding = !favoriteDiscountIds.contains(discountId)
+        favoriteDiscountIds = if (isAdding) {
             favoriteDiscountIds + discountId
+        } else {
+            favoriteDiscountIds - discountId
+        }
+
+        if (isAdding && selectedFilter != FilterType.FAVORITE) {
+            favoriteFlashTrigger = System.currentTimeMillis()
         }
 
         if (prismatDataStore != null && discount != null) {
