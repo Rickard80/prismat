@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.EaseOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,7 +58,23 @@ fun FilterButton(
         modifier = modifier
             .clip(CircleShape)
             .clickable(onClick = onClick, interactionSource = interactionSource, indication = null)
-            .size(48.dp),
+            .size(48.dp)
+            .graphicsLayer {
+                compositingStrategy = if (flashAlpha.value > 0f) {
+                    CompositingStrategy.Offscreen
+                } else {
+                    CompositingStrategy.Auto
+                }
+            }
+            .drawWithContent {
+                drawContent()
+                if (flashAlpha.value > 0f) {
+                    drawRect(
+                        color = Color.White.copy(alpha = flashAlpha.value),
+                        blendMode = BlendMode.SrcAtop
+                    )
+                }
+            },
         contentAlignment = Alignment.Center
     ) {
         Crossfade(targetState = isSelected, animationSpec = tween(durationMillis = if (isSelected) 0 else 200, easing = EaseOut)) { isSelected ->
@@ -67,15 +86,6 @@ fun FilterButton(
         }
 
         FilterButtonIcon(filterType)
-
-        if (flashAlpha.value > 0f) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = flashAlpha.value))
-            )
-        }
     }
 }
 

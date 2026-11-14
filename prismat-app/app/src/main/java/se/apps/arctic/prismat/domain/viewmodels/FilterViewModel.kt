@@ -102,7 +102,7 @@ class FilterViewModel(
             selectedDiscountIds - discountId
         }
 
-        if (isAdding && selectedFilter != FilterType.SELECTED) {
+        if (isAdding) {
             selectedFlashTrigger = System.currentTimeMillis()
         }
 
@@ -123,7 +123,7 @@ class FilterViewModel(
             favoriteDiscountIds - discountId
         }
 
-        if (isAdding && selectedFilter != FilterType.FAVORITE) {
+        if (isAdding) {
             favoriteFlashTrigger = System.currentTimeMillis()
         }
 
